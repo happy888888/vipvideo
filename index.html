@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>兴哥影视</title>
+    <meta name="referrer" content="no-referrer"/>
+    <link rel="icon" type="image/icon" href="favicon.ico"/>
+    <meta charset="UTF-8" />
+    <style type="text/css">
+        *{
+            margin:0;
+            padding:0;
+        }
+        body{
+            background-color: #c0c0c0;
+        }
+        .container{
+            background-color: white;
+            width: 88vw;
+            margin:10px auto;
+            padding: 5px;
+            text-align: center;
+            box-shadow: 10px 10px 15px black;
+        }
+        p{
+            font-size: 200%;
+            padding: 10px 0;
+        }
+        .video-center{
+            width: 60vw;
+            height: 33.75vw;
+            margin: 0 auto;
+        }
+        .inputarea{
+            display: block;
+            margin: 10px;
+        }
+        .inputarea input{
+            outline-style: none;
+            border: 1px solid #ccc; 
+            border-radius: 3px;
+            padding: 7px 7px;
+            width: 60vw;
+            font-size: 12px;
+        }
+        .inputarea input:focus{
+            border-color: #66afe9;
+            outline: 0;
+            -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075),0 0 8px rgba(102,175,233,.6);
+            box-shadow: inset 0 1px 1px rgba(0,0,0,.075),0 0 8px rgba(102,175,233,.6)
+        }
+        .inputarea button{
+            width: 150px;
+            height: 30px;
+            color:white;
+            background-color:cornflowerblue;
+            border-radius: 3px;/
+            border-width: 0;
+            margin: 0;
+            outline: none;
+            font-family: KaiTi;
+            font-size: 17px;
+            text-align: center;
+            cursor: pointer;
+        }
+        .inputarea button:hover{
+            background-color: red;
+        }
+    </style>
+    <link href="https://unpkg.com/video.js/dist/video-js.min.css" rel="stylesheet" />
+    <script src="https://unpkg.com/video.js/dist/video.min.js"></script>
+    <script src="https://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <p>兴哥影视</p>
+        <video id="my-video" class="video-js vjs-big-play-centered video-center" controls data-setup="{}" >
+        </video>
+        <div class="inputarea">
+            <input id="input" type="url" placeholder="请输入网址"/>
+            <button id="button">解析网址</button>
+        </div>
+        <div id="tips">
+            还没有开始解析
+        </div>
+    </div>
+</body>
+<script type="text/javascript">
+    var myvideo = videojs("my-video");
+    $(function(){
+        $('#button').click(function(){
+            $('#tips').css('color','black');
+            $('#tips').text("正在解析视频");
+             $.ajax({
+                 type: "POST",
+                 url: "./videoapi/",
+                 data: {url: escape($("#input").val())},
+                 dataType: "json",
+                 success: function(data){
+                    if(data["code"] == 0){
+                        $('#tips').text("解析成功");
+                        $('#tips').css('color','green');
+                        if(data["type"] == "hls" || data["type"] == "m3u8"){
+                            myvideo.src({type: "application/x-mpegURL", src: data["url"]});
+                        }else if(data["type"] == "mp4"){
+                            myvideo.src({type: "video/mp4", src: data["url"]});
+                        }else{
+                            myvideo.src(data["url"]);
+                        }
+                        myvideo.load();
+                        myvideo.autoplay();
+                        myvideo.play();
+
+                    }else{
+                        $('#tips').text("解析失败：" + data["info"]);
+                        $('#tips').css('color','red');
+                    }
+                },
+                error: function(xhr, status, text){
+                    $('#tips').text("解析失败");
+                    $('#tips').css('color','red');
+                }
+             });
+        });
+    });
+</script>
+</html>
